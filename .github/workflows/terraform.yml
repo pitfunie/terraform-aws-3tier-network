@@ -2,41 +2,62 @@
 # this is clean, modular, and right on target for a dev-focused GitOps workflow. Here’s a quick breakdown of what you’ve
 # locked in and a couple of pro-grade adjustments you might# consider to level it up even further:
 
+#    Environment Secret: You're using a secret with key name and value dev, which is echoed above. You can later replace or extend it with real credentials or API keys.
+#    No Reviewers / Wait Timer / Restrictions: Since it’s for personal testing, this workflow skips all approval logic — perfect for rapid iteration.
+#    Future-Proofing: By including dev, staging, and prod in the inputs.environment options, you’ve laid groundwork to expand this setup seamlessly when needed.
+#
+#
+#
 
-
-
-name: Terraform Deploy
+name: Deploy via Terraform
 
 on:
-  push:
-    branches:
-      - main
-  workflow_dispatch:{}  # Manual trigger
-
-permissions:
-  contents: read
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Choose environment to deploy"
+        required: true
+        default: dev
+        type: choice
+        options:
+          - dev
+          - staging
+          - prod
 
 jobs:
   terraform:
-    name: Terraform Plan & Apply
     runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
+    environment:
+      name: ${{ inputs.environment }}  # Activates secrets for selected env
 
-      - name: Setup Terraform
+
+    env:
+      TF_ENV: ${{ inputs.environment }}
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 🧪 Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: 1.5.7  # pin for stability
+          terraform_version: 1.6.4
 
-      - name: Initialize Terraform
+      - name: 🔐 Show Dev Secrets
+        run: |
+          echo "Dev secret (name): ${{ secrets.name }}"
+          echo "Dev API key: ${{ secrets.MY_API_KEY }}"
+
+      - name: 📁 Initialize Terraform
         run: terraform init
+     
+      - name: 📐 Terraform Format Check
+        run: terraform fmt -check
 
-      - name: Terraform Plan
-        run: terraform plan -var-file="envs/dev/terraform.tfvars"
+      - name: 📊 Terraform Plan
+        run: terraform plan -var-file="envs/${{ env.TF_ENV }}/terraform.tfvars"
 
-      - name: Terraform Apply
-        if: github.ref == 'refs/heads/main'
-        run: terraform apply -auto-approve -var-file="envs/dev/terraform.tfvars"
+      - name: 🚀 Terraform Apply
+        run: terraform apply -var-file="envs/${{ env.TF_ENV }}/terraform.tfvars" -auto-approve
 
