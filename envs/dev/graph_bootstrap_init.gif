@@ -1,0 +1,21 @@
+┌──────────────────────────────┐
+│  envs/dev/bootstrap/main.tf  │ ◄─── Deploy state backend infra
+└─────────────┬────────────────┘
+              │
+              ▼
+┌──────────────────────────────┐
+│     S3 Bucket (tfstate)      │ ◄── Stores state file
+└──────────────────────────────┘
+┌──────────────────────────────┐
+│  DynamoDB Table (tf-lock)    │ ◄── Enables locking
+└──────────────────────────────┘
+
+✅ Once applied: these two resources exist and are ready to be referenced by...
+
+┌──────────────────────────────┐
+│    envs/dev/backend.tf       │ ◄─── Configures backend
+└─────────────┬────────────────┘
+              │
+              ▼
+terraform init (again) now uses remote state
+
