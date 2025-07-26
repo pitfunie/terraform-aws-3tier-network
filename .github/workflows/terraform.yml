@@ -1,10 +1,17 @@
+
+# this is clean, modular, and right on target for a dev-focused GitOps workflow. Here’s a quick breakdown of what you’ve
+# locked in and a couple of pro-grade adjustments you might# consider to level it up even further:
+
+
+
+
 name: Terraform Deploy
 
 on:
   push:
     branches:
       - main
-  workflow_dispatch:  # Manual trigger
+  workflow_dispatch:{}  # Manual trigger
 
 permissions:
   contents: read
